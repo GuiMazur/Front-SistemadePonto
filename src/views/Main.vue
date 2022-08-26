@@ -1,6 +1,8 @@
 <script>
 import router from "@/router";
 import axios from 'axios';
+import TimeLogShower from "@/components/TimeLogShower.vue";
+
 export default {
   data() {
     return {
@@ -20,10 +22,10 @@ export default {
       return dateTime;
     },
     recordArrive(){
-      axios.post('http://localhost:8000/api/timerecorder', {"tipo": "entrada", "timeLog": this.getTime(), "user_id": this.$store.state.user.id}).then(r=>{alert("Informação registrada com sucesso."); reload()}).catch(e=>alert(e))
+      axios.post('http://localhost:8000/api/timerecorder', {"tipo": "entrada", "timeLog": this.getTime(), "user_id": this.$store.state.user.id, "password": this.$store.state.user.password}).then(r=>alert("Informação registrada com sucesso.")).catch(e=>alert(e))
     },
     recordExit(){
-      axios.post('http://localhost:8000/api/timerecorder', {"tipo": "saida", "timeLog": this.getTime(), "user_id": this.$store.state.user.id}).then(r=>{alert("Informação registrada com sucesso."); reload()}).catch(e=>alert(e))
+      axios.post('http://localhost:8000/api/timerecorder', {"tipo": "saida", "timeLog": this.getTime(), "user_id": this.$store.state.user.id, "password": this.$store.state.user.password}).then(r=>alert("Informação registrada com sucesso.")).catch(e=>alert(e))
     },
     test(){console.log(this.timeLogs)}
   },
@@ -34,16 +36,21 @@ export default {
     if(this.$store.state.user){
       let response = await axios.get(`http://localhost:8000/api/getlogs/${this.$store.state.user.id}`);
       this.timeLogs = response.data
-    }
+    };
   },
+  components:{
+    TimeLogShower,
+  }
 }
 </script>
 
 <template lang="">
-    <div class="bg-blue-100 h-screen border pt-36 flex justify-around">
-        <button class="w-32 h-14 bg-green-500 text-black" @click="recordArrive">Registrar Chegada</button>
-        <button class="w-32 h-14 bg-red-500 text-black" @click="recordExit">Registrar Saída</button>
-        <!-- <button @click="test">aaaaaaa</button> -->
+    <div class="bg-blue-100 h-screen border pt-36">
+      <div class="flex justify-around h-16">
+        <button class="w-32 h-14 bg-green-500 text-black rounded" @click="recordArrive">Registrar Chegada</button>
+        <button class="w-32 h-14 bg-red-500 text-black rounded" @click="recordExit">Registrar Saída</button>
+      </div>
+      <TimeLogShower :timeLogs="timeLogs" />
     </div>
 </template>
 
