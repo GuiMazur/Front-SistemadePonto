@@ -14,6 +14,10 @@ export default {
       minimumIntegerDigits: 2,
       useGrouping: false
     })},
+    async getLogs(){
+      let response = await axios.get(`http://localhost:8000/api/getlogs/${this.$store.state.user.id}`);
+      this.timeLogs = response.data;
+    },
     getTime(){
       const today = new Date();
       let date = today.getFullYear()+'-'+this.twoDigits(today.getMonth()+1)+'-'+this.twoDigits(today.getDate());
@@ -22,21 +26,37 @@ export default {
       return dateTime;
     },
     recordArrive(){
-      axios.post('http://localhost:8000/api/timerecorder', {"tipo": "entrada", "timeLog": this.getTime(), "user_id": this.$store.state.user.id, "password": this.$store.state.user.password}).then(r=>alert("Informação registrada com sucesso.")).catch(e=>alert(e))
+      let timeLog = {"tipo": "entrada", 
+      "timeLog": this.getTime(), 
+      "user_id": this.$store.state.user.id, 
+      "password": this.$store.state.user.password};
+      axios.post('http://localhost:8000/api/timerecorder', timeLog).then(r => this.getLogs()).catch(e=>alert(e));
     },
     recordExit(){
-      axios.post('http://localhost:8000/api/timerecorder', {"tipo": "saida", "timeLog": this.getTime(), "user_id": this.$store.state.user.id, "password": this.$store.state.user.password}).then(r=>alert("Informação registrada com sucesso.")).catch(e=>alert(e))
+      let timeLog = {"tipo": "saida", 
+      "timeLog": this.getTime(), 
+      "user_id": this.$store.state.user.id, 
+      "password": this.$store.state.user.password};
+      axios.post('http://localhost:8000/api/timerecorder', timeLog).then(r => this.getLogs()).catch(e=>alert(e));
     },
-    test(){console.log(this.timeLogs)}
   },
   async mounted() {
     if(localStorage.getItem('user') && !this.$store.state.user) {
       this.$store.commit('saveUser', JSON.parse(localStorage.getItem('user')));
     };
-    if(this.$store.state.user){
-      let response = await axios.get(`http://localhost:8000/api/getlogs/${this.$store.state.user.id}`);
-      this.timeLogs = response.data
-    };
+    if(this.$store.state.user) await this.getLogs();
+  },
+  computed: {
+    progress(){
+      let finalTimeInMinutes = this.$store.state.user.defaultExitTime*60;
+      let arrivalTime = new Date(this.timeLogs[this.timeLogs.length-1].timeLog)
+      let arrivalTimeInMinutes = arrivalTime.getHours()*60 + arrivalTime.getMinutes();
+      let actualTime = new Date();
+      let actualTimeInMinutes = actualTime.getHours()*60+actualTime.getMinutes();
+      let progress = (actualTimeInMinutes - arrivalTimeInMinutes) * 100 / (finalTimeInMinutes - arrivalTimeInMinutes);
+      console.log(finalTimeInMinutes, arrivalTimeInMinutes, actualTimeInMinutes);
+      return progress>100 ? '100%' : Math.round(progress)+'%';
+    }
   },
   components:{
     TimeLogShower,
@@ -46,14 +66,18 @@ export default {
 
 <template lang="">
     <div class="bg-blue-100 h-screen border pt-36">
-      <div class="flex justify-around h-16">
-        <button class="w-32 h-14 bg-green-500 text-black rounded" @click="recordArrive">Registrar Chegada</button>
-        <button class="w-32 h-14 bg-red-500 text-black rounded" @click="recordExit">Registrar Saída</button>
+      <div v-if='$store.state.user' class="flex items-center justify-center space-x-16 h-20">
+        <button class="w-24 h-12 md:w-32 md:w-24 bg-green-500 text-black rounded" @click="recordArrive">Registrar Chegada</button>
+        <div v-if='timeLogs[timeLogs.length-1].tipo == "entrada"' class="w-2/5 h-4 bg-gray-200 rounded-full dark:bg-gray-700">
+          <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" :style="{'width': progress}"> {{progress}}</div>
+        </div>
+        <button class="w-24 h-12 md:w-32 md:w-24 bg-red-500 text-black rounded" @click="recordExit">Registrar Saída</button>
       </div>
-      <TimeLogShower :timeLogs="timeLogs" />
+      <TimeLogShower v-if='$store.state.user' :timeLogs="timeLogs" />
+      <p v-else class="bg-white rounded border border-black m-auto mt-24 text-xl w-[300px] h-[280px] px-12 py-20 md:mt-12 md:text-2xl md:w-[450px] md:h-[400px] md:px-20 md:py-32">Você não está conectado a nenhuma conta, por favor faça Login para continuar.</p>
     </div>
 </template>
 
 <style lang="">
-    
+
 </style>

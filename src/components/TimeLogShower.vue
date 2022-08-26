@@ -11,8 +11,6 @@ export default {
             for (let i=0; i < this.timeLogs.length; i++){
                 let log = this.timeLogs[i];
                 let fullDate = new Date(log.timeLog);
-                console.log(i);
-                console.log(Object.keys(dayObject).length == 0);
 
                 if (!Object.keys(dayObject).length){
                     console.log(`empty ${i}`);
@@ -20,8 +18,9 @@ export default {
                     dayObject["id"] = log.id;
                     dayObject[log.tipo] = this.getHours(fullDate);
                     lastType = log.tipo;
-                    if (i == this.timeLogs.length - 1) {dayArray.push(dayObject);}
-                } else if(log.tipo != lastType && this.getDate(fullDate) == dayObject["date"]){
+                    if (i == this.timeLogs.length - 1 || log.tipo=="saida") {dayArray.push(dayObject); dayObject={};}
+                    
+                } else if(log.tipo == "saida" && this.getDate(fullDate) == dayObject["date"]){
                     dayObject[log.tipo] = this.getHours(fullDate);
                     dayArray.push(dayObject);
                     dayObject = {};
@@ -31,7 +30,7 @@ export default {
                         dayObject = {};
                         dayObject["date"] = this.getDate(fullDate);
                         dayObject[log.tipo] = this.getHours(fullDate);
-                        lastType = log.tipo;
+                        if (i == this.timeLogs.length - 1) {dayArray.push(dayObject);}
                     }
             }
             return dayArray.reverse();
@@ -56,12 +55,23 @@ export default {
 </script>
 
 <template lang="">
-    <div class="bg-white w-4/5">
-        <div v-for="dayLog in filteredLogs" :key="dayLog.id" class="flex justify-around">
-            <div class="w-28">{{dayLog.date}}</div>
-            <div class="w-28">{{dayLog.entrada}}</div>
-            <div class="w-28">{{dayLog.saida}}</div>
-        </div>
+    <div class="bg-white w-4/5 m-auto max-h-[280px] md:max-h-[380px] xl:max-h-[500px] overflow-y-auto rounded border border-black">
+        <table class="table-fixed m-auto bg-white w-full md:w-4/5">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Entrada</th>
+                    <th>Saída</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="dayLog in filteredLogs" :key="dayLog.id" class="">
+                    <td class="w-22">{{dayLog.date}}</td>
+                    <td class="w-22">{{dayLog.entrada}}</td>
+                    <td class="w-22">{{dayLog.saida}}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </template>
 
@@ -69,9 +79,19 @@ export default {
     
 </style>
 
-
-<!-- "id": log.id,
-                    "fullDate": log.timeLog,
-                    "data": getDate(log.timeLog),
-                    "hour": getHours(log.timeLog),
-                     -->
+<table class="table-auto bg-white w-4/5 m-auto">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Entrada</th>
+      <th>Saída</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="dayLog in filteredLogs" :key="dayLog.id" class="flex justify-around">
+      <td class="w-28">{{dayLog.date}}</td>
+      <td class="w-28">{{dayLog.entrada}}</td>
+      <td class="w-28">{{dayLog.saida}}</td>
+    </tr>
+  </tbody>
+</table>
