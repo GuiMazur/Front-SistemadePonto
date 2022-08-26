@@ -48,14 +48,17 @@ export default {
   },
   computed: {
     progress(){
-      let finalTimeInMinutes = this.$store.state.user.defaultExitTime*60;
-      let arrivalTime = new Date(this.timeLogs[this.timeLogs.length-1].timeLog)
-      let arrivalTimeInMinutes = arrivalTime.getHours()*60 + arrivalTime.getMinutes();
-      let actualTime = new Date();
-      let actualTimeInMinutes = actualTime.getHours()*60+actualTime.getMinutes();
-      let progress = (actualTimeInMinutes - arrivalTimeInMinutes) * 100 / (finalTimeInMinutes - arrivalTimeInMinutes);
-      console.log(finalTimeInMinutes, arrivalTimeInMinutes, actualTimeInMinutes);
-      return progress>100 ? '100%' : Math.round(progress)+'%';
+        if(this.timeLogs.length > 0){let finalTimeInMinutes = this.$store.state.user.defaultExitTime*60;
+        let arrivalTime = new Date(this.timeLogs[this.timeLogs.length-1].timeLog)
+        let arrivalTimeInMinutes = arrivalTime.getHours()*60 + arrivalTime.getMinutes();
+        let actualTime = new Date();
+        let actualTimeInMinutes = actualTime.getHours()*60+actualTime.getMinutes();
+        let progress = (actualTimeInMinutes - arrivalTimeInMinutes) * 100 / (finalTimeInMinutes - arrivalTimeInMinutes);
+        console.log(finalTimeInMinutes, arrivalTimeInMinutes, actualTimeInMinutes);
+        return progress>100 ? '100%' : Math.round(progress)+'%';}
+    },
+    showBar(){
+      return (this.timeLogs.length > 0 && this.timeLogs[this.timeLogs.length-1].tipo == "entrada");
     }
   },
   components:{
@@ -65,11 +68,12 @@ export default {
 </script>
 
 <template lang="">
-    <div class="bg-blue-100 h-screen border pt-36">
+
+    <div class="bg-blue-100 h-screen border pt-36 px-4">
       <div v-if='$store.state.user' class="flex items-center justify-center space-x-16 h-20">
         <button class="w-24 h-12 md:w-32 md:w-24 bg-green-500 text-black rounded" @click="recordArrive">Registrar Chegada</button>
-        <div v-if='timeLogs[timeLogs.length-1].tipo == "entrada"' class="w-2/5 h-4 bg-gray-200 rounded-full dark:bg-gray-700">
-          <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" :style="{'width': progress}"> {{progress}}</div>
+        <div v-if='showBar' class="w-2/5 h-4 bg-gray-200 rounded-full dark:bg-gray-700">
+          <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded" :style="{'width': progress}"> {{progress}}</div>
         </div>
         <button class="w-24 h-12 md:w-32 md:w-24 bg-red-500 text-black rounded" @click="recordExit">Registrar Saída</button>
       </div>
